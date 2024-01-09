@@ -9,6 +9,8 @@ TEMPLATE_FILE=$2
 OPEN_EDITOR=${3:-false}
 EDITOR=${4:-vim}
 
+WEEKLY_TEMPLATE="$JOURNAL_DIR/templates/weekly_template.md"
+
 # Filename based on the current date
 CURRENT_DATE=$(date +%Y-%m-%d)
 JOURNAL_FILE="$JOURNAL_DIR/journals/${CURRENT_DATE}.md"
@@ -38,5 +40,6 @@ cat "$TEMPLATE_FILE" >>"$JOURNAL_FILE"
 
 if [ "$OPEN_EDITOR" = true ]; then
 	# Open the journal file in the editor
+	echo "Opening $JOURNAL_FILE in $EDITOR"
 	$EDITOR "$JOURNAL_FILE"
 fi

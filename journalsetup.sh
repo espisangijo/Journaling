@@ -27,7 +27,8 @@ echo "Journal templates copied to $JOURNAL_TEMPLATES_DIR."
 setup_cron_job() {
 	local cron_time=$1
 	local template_file=$2
-	local cron_command="bash $JOURNAL_DIR/scripts/start_journal.sh $JOURNAL_DIR $JOURNAL_TEMPLATES_DIR/$template_file true $EDITOR"
+	local open_editor=$3
+	local cron_command="bash $JOURNAL_DIR/scripts/start_journal.sh $JOURNAL_DIR $JOURNAL_TEMPLATES_DIR/$template_file $3 $EDITOR"
 
 	# Adding job to crontab
 	(
@@ -35,6 +36,17 @@ setup_cron_job() {
 		echo "$cron_time $cron_command"
 	) | crontab -
 	echo "Cron job set for $template_file"
+}
+
+setup_weekly_cron_job() {
+	local cron_time=$1
+	local cron_command="bash $JOURNAL_DIR/scripts/weekly_journal.sh $JOURNAL_DIR $JOURNAL_TEMPLATES_DIR/weekly_journal.md $2 $EDITOR"
+
+	(
+		crontab -l 2>/dev/null
+		echo "$cron_time $cron_command"
+	) | crontab -
+	echo "Cron job set for weekly_journal.sh"
 }
 
 save_config() {
@@ -61,10 +73,10 @@ EDITOR=${EDITOR:-vim}
 save_config
 
 # Set up cron jobs
-setup_cron_job "$MORNING_CRON" "morning_journal.md"
-setup_cron_job "$MIDDAY_CRON" "midday_journal.md"
-setup_cron_job "$EVENING_CRON" "evening_journal.md"
-setup_cron_job "$WEEKLY_CRON" "weekly_journal.md"
+setup_cron_job "$MORNING_CRON" "morning_journal.md" "true"
+setup_cron_job "$MIDDAY_CRON" "midday_journal.md" "true"
+setup_cron_job "$EVENING_CRON" "evening_journal.md" "true"
+setup_weekly_cron_job "$WEEKLY_CRON" "weekly_journal.md"
 
 echo "Journal setup complete."
 
@@ -74,22 +86,23 @@ EVENING_HOUR=$(echo $EVENING_CRON | cut -d ' ' -f 2)
 
 # Ask to create today's journal
 read -p "Do you want to create today's journal now? (y/n): " create_journal_now
+
 if [[ $create_journal_now == "y" ]]; then
 	current_hour=$(date +%H)
 
 	# Check if it's past morning time and before midday time
 	if ((MORNING_HOUR <= current_hour)); then
-		bash "$JOURNAL_SCRIPTS_DIR/start_journal.sh" "$JOURNAL_DIR" "$JOURNAL_TEMPLATES_DIR/morning_journal.md"
+		bash "$JOURNAL_SCRIPTS_DIR/start_journal.sh" "$JOURNAL_DIR" "$JOURNAL_TEMPLATES_DIR/morning_journal.md" "false"
 	fi
 
 	# Check if it's past midday time and before evening time
 	if ((MIDDAY_HOUR <= current_hour)); then
-		bash "$JOURNAL_SCRIPTS_DIR/start_journal.sh" "$JOURNAL_DIR" "$JOURNAL_TEMPLATES_DIR/midday_journal.md"
+		bash "$JOURNAL_SCRIPTS_DIR/start_journal.sh" "$JOURNAL_DIR" "$JOURNAL_TEMPLATES_DIR/midday_journal.md" "false"
 	fi
 
 	# Check if it's past evening time
 	if ((EVENING_HOUR <= current_hour)); then
-		bash "$JOURNAL_SCRIPTS_DIR/start_journal.sh" "$JOURNAL_DIR" "$JOURNAL_TEMPLATES_DIR/evening_journal.md"
+		bash "$JOURNAL_SCRIPTS_DIR/start_journal.sh" "$JOURNAL_DIR" "$JOURNAL_TEMPLATES_DIR/evening_journal.md" "false"
 	fi
 
 	$EDITOR "$JOURNALS_DIR/$(date +%Y-%m-%d).md"
