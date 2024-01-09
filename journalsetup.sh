@@ -40,7 +40,8 @@ setup_cron_job() {
 
 setup_weekly_cron_job() {
 	local cron_time=$1
-	local cron_command="bash $JOURNAL_DIR/scripts/weekly_journal.sh $JOURNAL_DIR $JOURNAL_TEMPLATES_DIR/weekly_journal.md $2 $EDITOR"
+	local template_file=$2
+	local cron_command="bash $JOURNAL_DIR/scripts/weekly_journal.sh $JOURNAL_DIR $JOURNAL_TEMPLATES_DIR/$template_file $EDITOR"
 
 	(
 		crontab -l 2>/dev/null
